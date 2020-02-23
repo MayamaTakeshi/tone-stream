@@ -5,20 +5,26 @@ const SpecReadStream = require('spec-read-stream')
 const DTMF = require('./lib/dtmf')
 
 class ToneStream extends Readable {
-	constructor(opts) {
+	constructor(format, filler) {
 		super()
 
-		if(opts) {
-			this.sampleRate = opts.sampleRate
-			this.bitDepth = opts.bitDepth
-			this.channels = opts.channels
-			this.amplitude = (2**opts.bitDepth)/2 - 1
-
+		if(format) {
+			this.sampleRate = format.sampleRate
+			this.bitDepth = format.bitDepth
+			this.channels = format.channels
 		} else {
-			
+			// default
+			this.sampleRate = 8000
+			this.bitDepth = 16
+			this.channels = 1
 		}
+
+		this.filler = filler
+
+		this.amplitude = (2**this.bitDepth)/2 - 1
 	
 		this.specReadStream = new SpecReadStream()
+
 		this.currentSample = 0
 	}
 
@@ -50,17 +56,30 @@ class ToneStream extends Readable {
 
 		let end = this.currentSample + numSamples
 
+		let buf = Buffer.alloc(numSamples * blockAlign)
+
+		let setter = (buf['writeInt' + this.bitDepth + 'LE']).bind(buf)
+
 		var specs = this.specReadStream.read(numSamples)
 		//console.log(`specs=${specs}`)
 
-		if(!specs) return null;
+		var buf_idx = 0;
+
+		if(!specs) {
+			//console.log(`no specs filler=${this.filler}`)
+			if(typeof this.filler == 'number') {
+				for(var j=0 ; j<numSamples * this.channels; j++) {
+					let offset = (j * sampleSize * this.channels)
+					setter(this.filler, offset)
+				}
+				return buf
+			} else {
+				return null
+			}
+		}
 
 		let actualSamples = specs.reduce((total, spec) => { return total + spec[0] }, 0)
 		//console.log(`actualSamples=${actualSamples}`)
-
-		let buf = Buffer.alloc(actualSamples * blockAlign)
-
-		var buf_idx = 0;
 
 		for(var i=0 ; i<specs.length ; i++) {
 			var spec = specs[i]
@@ -102,18 +121,35 @@ class ToneStream extends Readable {
 			for(var j=0 ; j<nSamples ; j++) {
 				for (let channel = 0; channel < this.channels; channel++) {
 					let val = val_calculator(this.amplitude, this.currentSample)
-					//console.log(this.currentSample, val)
 					let offset = (buf_idx * sampleSize * this.channels) + (channel * sampleSize)
-					buf['writeInt' + this.bitDepth + 'LE'](val, offset)
+					setter(val, offset)
 					buf_idx++
 					this.currentSample++
 				}
 			}
 		}
 
-		this.push(buf)
+		if(typeof this.filler == 'number') {
+			while(numSamples > actualSamples) {
+				//console.log("adding filler")
+				for (let channel = 0; channel < this.channels; channel++) {
+					let offset = (actualSamples-1) * sampleSize * this.channels
+					setter(this.filler, offset)
+					this.currentSample++
+					actualSamples++
+				}
+			}
+		}
 
-		return buf
+		if(numSamples > actualSamples) {
+			//console.log(`slicing buf from ${numSamples} to ${actualSamples}`)
+			//console.log(`${actualSamples * sampleSize * this.channels}`)
+			buf = buf.slice(0, actualSamples * sampleSize * this.channels)
+		}
+
+		//console.log("pushing")
+		//console.log(buf.length)
+		this.push(buf)
 	}
 }
 
