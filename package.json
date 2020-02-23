@@ -1,0 +1,27 @@
+{
+  "name": "tone-stream",
+  "version": "1.0.0",
+  "description": "A simple audio tone stream library",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MayamaTakeshi/tone-stream.git"
+  },
+  "keywords": [
+    "tone",
+    "stream"
+  ],
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "MayamaTakeshi",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^7.0.1",
+    "speaker": "^0.5.1"
+  },
+  "dependencies": {
+    "spec-read-stream": "^1.2.0"
+  }
+}
