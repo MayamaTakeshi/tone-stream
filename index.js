@@ -34,24 +34,27 @@ class ToneStream extends Readable {
 		super.on(evt, cb)
 
 		if(evt == 'empty') {
-			console.log("proxying on empty")
 			this.specReadStream.on(evt, cb)
 		}
 	}
 
-	_read(numSamples) {
-		console.log(`_read(${numSamples})`)
+	_read(n) {
+		//console.log(`_read(${n})`)
 
 		let sampleSize = this.bitDepth / 8
 		let blockAlign = sampleSize * this.channels
 
+		let numSamples = Math.floor(n / blockAlign)
+
 		let end = this.currentSample + numSamples
 
 		var specs = this.specReadStream.read(numSamples)
-		console.log(`specs=${specs}`)
+		//console.log(`specs=${specs}`)
+
+		if(!specs) return null;
 
 		let actualSamples = specs.reduce((total, spec) => { return total + spec[0] }, 0)
-		console.log(`actualSamples=${actualSamples}`)
+		//console.log(`actualSamples=${actualSamples}`)
 
 		let buf = Buffer.alloc(actualSamples * blockAlign)
 
@@ -59,7 +62,7 @@ class ToneStream extends Readable {
 
 		for(var i=0 ; i<specs.length ; i++) {
 			var spec = specs[i]
-			console.log(`spec=${spec}`)
+			//console.log(`spec=${spec}`)
 
 			var nSamples = spec[0]
 			var spec_val = spec[1]
