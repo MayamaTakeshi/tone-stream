@@ -2,6 +2,8 @@ const { Readable } = require('stream')
 
 const SpecReadStream = require('spec-read-stream')
 
+const DTMF = require('./lib/dtmf')
+
 class ToneStream extends Readable {
 	constructor(opts) {
 		super()
@@ -71,13 +73,29 @@ class ToneStream extends Readable {
 				if(spec_val == 's') {
 					// silence
 					return () => { return 0 }
-				} else {
+				} else if(typeof spec_val == 'number') {
 					var freq = spec_val
 					let t = (Math.PI * 2 * freq) / this.sampleRate
 
 					return (amplitude, currentSample) => {
 						return Math.round(amplitude * Math.sin(t * currentSample)) // sine wave
 					}
+				} else if(typeof spec_val == 'string' && spec_val.startsWith("DTMF:")) {
+					var tone = DTMF[spec_val.split(":")[1]]
+					var lo = tone[0]
+					var hi = tone[1]
+
+					let t_lo = (Math.PI * 2 * lo) / this.sampleRate
+					let t_hi = (Math.PI * 2 * hi) / this.sampleRate
+
+					return (amplitude, currentSample) => {
+						return (
+							Math.round(amplitude * Math.sin(t_lo * currentSample)) +
+							Math.round(amplitude * Math.sin(t_hi * currentSample))
+						) / 2
+					}
+				} else {
+					throw `invalid spec ${spec}`
 				}
 			})()
 

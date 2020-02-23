@@ -1,10 +1,15 @@
 const ToneStream = require('../index.js')
+const Speaker = require('speaker')
 
-const ts = new ToneStream({
+const format = {
 	sampleRate: 8000, 
 	bitDepth: 16,
 	channels: 1
-})
+}
+
+const ts = new ToneStream(format)
+
+const s = new Speaker(format)
 
 var notes = [
 	[1000, 261.63], // C4
@@ -23,14 +28,6 @@ ts.on('empty', () => {
 	console.log("Got event 'empty'. Reversing notes.")
 	notes.reverse()
 	ts.concat(notes)
-})
-
-const Speaker = require('speaker')
-
-const s = new Speaker({
-	sampleRate: 8000,
-	bitDepth: 16,
-	channels: 1,
 })
 
 ts.pipe(s)
