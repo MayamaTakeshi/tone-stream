@@ -11,14 +11,10 @@
     "tone",
     "stream"
   ],
-  "scripts": {
-    "test": "mocha"
-  },
+  "scripts": {},
   "author": "MayamaTakeshi",
   "license": "MIT",
   "devDependencies": {
-    "chai": "^4.2.0",
-    "mocha": "^7.0.1",
     "speaker": "^0.5.1"
   },
   "dependencies": {
