@@ -109,7 +109,8 @@ class ToneStream extends Readable {
 
 					return (amplitude, currentSample) => {
 						return (
-							Math.round(amplitude * Math.sin(t_lo * currentSample)) +
+							Math.round(amplitude * Math.sin(t_lo * currentSample))
+							+
 							Math.round(amplitude * Math.sin(t_hi * currentSample))
 						) / 2
 					}
