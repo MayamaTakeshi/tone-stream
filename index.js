@@ -109,8 +109,7 @@ class ToneStream extends Readable {
 
 					return (amplitude, currentSample) => {
 						return (
-							Math.round(amplitude * Math.sin(t_lo * currentSample))
-							+
+							Math.round(amplitude * Math.sin(t_lo * currentSample)) +
 							Math.round(amplitude * Math.sin(t_hi * currentSample))
 						) / 2
 					}
@@ -121,7 +120,7 @@ class ToneStream extends Readable {
 
 			for(var j=0 ; j<nSamples ; j++) {
 				for (let channel = 0; channel < this.channels; channel++) {
-					let val = val_calculator(this.amplitude, this.currentSample)
+					let val = val_calculator(this.amplitude, this.currentSample) / 2 // halve amplitude
 					let offset = (buf_idx * sampleSize * this.channels) + (channel * sampleSize)
 					setter(val, offset)
 					buf_idx++
