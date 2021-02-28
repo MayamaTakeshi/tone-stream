@@ -1,4 +1,4 @@
-const ToneStream = require('../index.js')
+const { ToneStream } = require('../index.js')
 
 const Speaker = require('speaker')
 

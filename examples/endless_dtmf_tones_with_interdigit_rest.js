@@ -13,16 +13,12 @@ const ts = new ToneStream(format)
 
 const s = new Speaker(format)
 
-const notes = "C4 D4 E4 F4 G4 A4 B4 C5"
-const note_duration = 100 // milliseconds
-const rest_duration = 0 // milliseconds
-
-const tones = utils.gen_music_scale(notes, note_duration, rest_duration, SAMPLE_RATE)
+var tones = utils.gen_dtmf_tones("1234576890abcd*#", 50, 50, SAMPLE_RATE)
 
 ts.concat(tones)
 
 ts.on('empty', () => {
-	console.log("Got event 'empty'. Reversing notes.")
+	console.log("Got event 'empty'. Reversing tones.")
 	tones.reverse()
 	ts.concat(tones)
 })

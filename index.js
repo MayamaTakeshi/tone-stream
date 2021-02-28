@@ -153,4 +153,7 @@ class ToneStream extends Readable {
 	}
 }
 
-module.exports = ToneStream
+module.exports = {
+    ToneStream,
+    utils: require('./lib/utils.js'),
+}

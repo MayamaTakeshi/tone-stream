@@ -1,4 +1,4 @@
-const ToneStream = require('../index.js')
+const { ToneStream } = require('../index.js')
 const goertzel = require('goertzel-stream')
 
 const {PassThrough} = require('stream')
