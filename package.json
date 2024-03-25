@@ -1,6 +1,6 @@
 {
   "name": "tone-stream",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "A simple audio tone stream library",
   "main": "index.js",
   "repository": {

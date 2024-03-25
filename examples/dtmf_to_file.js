@@ -5,7 +5,9 @@ const wav = require('wav')
 function usage() {
 	console.log(`
 Required parameters: 'dtmf_sequence' output_file sample_rate bit_depth, channels
-Ex:                  '1234' digits.wav 16000 16 1
+                     '1234' digits.1234.8000hz.wav 8000 16 1
+                     '1234' digits.1234.16000hz.wav 16000 16 1
+                     '1234' digits.1234.32000hz.wav 32000 32 1
 `)
 }
 
@@ -43,6 +45,7 @@ ts.pipe(speaker)
 ts.pipe(fileWriter)
 
 ts.concat(tones)
+ts.add([ sampleRate, 's' ])
 
 ts.on('empty', () => {
 	console.log('end_of_audio')
