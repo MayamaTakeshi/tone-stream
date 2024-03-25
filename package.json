@@ -28,6 +28,7 @@
   "dependencies": {
     "morse-node": "^0.1.1",
     "note-to-frequency": "^1.4.1",
-    "spec-read-stream": "^1.2.0"
+    "spec-read-stream": "^1.2.0",
+    "wav": "^1.0.2"
   }
 }
