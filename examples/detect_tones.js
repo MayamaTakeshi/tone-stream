@@ -1,51 +1,28 @@
 const { ToneStream } = require('../index.js')
-const goertzel = require('goertzel-stream')
-
-const {PassThrough} = require('stream')
-
-const sampleRate = 8000
+const DtmfDetectionStream = require('dtmf-detection-stream')
 
 const format = {
-	sampleRate: sampleRate,
-	bitDepth: 16,
-	channels: 1,
+        sampleRate: 8000,
+        bitDepth: 16,
+        channels: 1,
 }
 
 const ts = new ToneStream(format)
+ts.add([800, 's']) // silence
+ts.add([800, 'DTMF:1'])
+ts.add([800, 's']) // silence
+ts.add([800, 'DTMF:2'])
+ts.add([800, 's']) // silence
+ts.add([800, 'DTMF:3'])
+ts.add([800, 's']) // silence
 
-var notes = [
-	//[2000, 'DTMF:#'],
-	[2000, 697],
-	[1000, 's'],
-	/*
-	[2000, 770],
-	[1000, 's'],
-	[2000, 852],
-	[1000, 's'],
-	*/
-]
+const dds = new DtmfDetectionStream(format)
 
-ts.concat(notes)
-
-var detector = goertzel([697, 770, 852, 941, 1209, 1336, 1477, 1633], {
-	sampleRate: sampleRate,
+dds.on('dtmf', data => {
+        console.log('Got', data)
 })
 
-// adding PassThrough stream to check data in the pipe
-const pt = new PassThrough()
-
-pt.on('data', data => {
-	console.log(data.length, data)
-})
-
-ts.pipe(pt)
-pt.pipe(detector)
-
-detector.on('toneStart', function (tones) {
-  console.log('start', tones)
-})
-
-detector.on('toneEnd', function (tones) {
-  console.log('end', tones)
+ts.on('data', data => {
+        dds.write(data)
 })
 

@@ -1,6 +1,6 @@
 {
   "name": "tone-stream",
-  "version": "1.4.4",
+  "version": "1.5.0",
   "description": "A simple audio tone stream library",
   "main": "index.js",
   "repository": {
@@ -21,11 +21,11 @@
   "author": "MayamaTakeshi",
   "license": "MIT",
   "devDependencies": {
-    "goertzel-stream": "git+https://github.com/MayamaTakeshi/goertzel-stream.git",
     "lodash": "^4.17.21",
     "speaker": "^0.5.1"
   },
   "dependencies": {
+    "dtmf-detection-stream": "^1.10.0",
     "morse-node": "^0.1.1",
     "note-to-frequency": "^1.4.1",
     "spec-read-stream": "^1.2.0",
