@@ -1,159 +1,169 @@
-const { Readable } = require('stream')
+const { Readable } = require("stream");
 
-const SpecReadStream = require('spec-read-stream')
+const SpecReadStream = require("spec-read-stream");
 
-const DTMF = require('./lib/dtmf')
+const DTMF = require("./lib/dtmf");
 
 class ToneStream extends Readable {
-	constructor(format, filler) {
-		super()
+  constructor(format, opts) {
+    super();
 
-		if(format) {
-			this.sampleRate = format.sampleRate
-			this.bitDepth = format.bitDepth
-			this.channels = format.channels
-		} else {
-			// default
-			this.sampleRate = 8000
-			this.bitDepth = 16
-			this.channels = 1
-		}
+    if (format) {
+      this.sampleRate = format.sampleRate;
+      this.bitDepth = format.bitDepth;
+      this.channels = format.channels;
+    } else {
+      // default
+      this.sampleRate = 8000;
+      this.bitDepth = 16;
+      this.channels = 1;
+    }
 
-		this.filler = filler
+    this.opts = opts;
 
-		this.amplitude = (2**this.bitDepth)/2 - 1
-	
-		this.specReadStream = new SpecReadStream()
+    this.amplitude = 2 ** this.bitDepth / 2 - 1;
 
-		this.currentSample = 0
-	}
+    this.specReadStream = new SpecReadStream();
 
-	add(spec) {
-		this.specReadStream.add(spec)
-	}
+    this.currentSample = 0;
+  }
 
-	concat(specs) {
-		specs.forEach(spec => {
-			this.specReadStream.add(spec)
-		})
-	}
+  add(spec) {
+    this.specReadStream.add(spec);
+  }
 
-	on(evt, cb) {
-		super.on(evt, cb)
+  concat(specs) {
+    specs.forEach((spec) => {
+      this.specReadStream.add(spec);
+    });
+  }
 
-		if(evt == 'empty') {
-			this.specReadStream.on(evt, cb)
-		}
-	}
+  on(evt, cb) {
+    super.on(evt, cb);
 
-	_read(n) {
-		//console.log(`_read(${n})`)
+    if (evt == "empty") {
+      this.specReadStream.on(evt, cb);
+    }
+  }
 
-		let sampleSize = this.bitDepth / 8
-		let blockAlign = sampleSize * this.channels
+  _read(n) {
+    //console.log(`_read(${n})`)
 
-		let numSamples = Math.floor(n / blockAlign)
+    let sampleSize = this.bitDepth / 8;
+    let blockAlign = sampleSize * this.channels;
 
-		let end = this.currentSample + numSamples
+    let numSamples = Math.floor(n / blockAlign);
 
-		let buf = Buffer.alloc(numSamples * blockAlign)
+    let end = this.currentSample + numSamples;
 
-		let setter = (buf['writeInt' + this.bitDepth + 'LE']).bind(buf)
+    let buf = Buffer.alloc(numSamples * blockAlign);
 
-		var specs = this.specReadStream.read(numSamples)
-		//console.log(`specs=${specs}`)
+    let setter = buf["writeInt" + this.bitDepth + "LE"].bind(buf);
 
-		var buf_idx = 0;
+    var specs = this.specReadStream.read(numSamples);
+    //console.log(`specs=${specs}`)
 
-		if(!specs) {
-			//console.log(`no specs filler=${this.filler}`)
-			if(typeof this.filler == 'number') {
-				for(var j=0 ; j<numSamples * this.channels; j++) {
-					let offset = (j * sampleSize * this.channels)
-					setter(this.filler, offset)
-				}
-				return buf
-			} else {
-				return null
-			}
-		}
+    var buf_idx = 0;
 
-		let actualSamples = specs.reduce((total, spec) => { return total + spec[0] }, 0)
-		//console.log(`actualSamples=${actualSamples}`)
+    if (!specs) {
+      if (this.opts && this.opts.stay_alive) {
+        for (var j = 0; j < numSamples * this.channels; j++) {
+          let offset = j * sampleSize * this.channels;
+          setter(0, offset);
+        }
 
-		for(var i=0 ; i<specs.length ; i++) {
-			var spec = specs[i]
-			//console.log(`spec=${spec}`)
+        this.push(buf);
+        return;
+      } else {
+        return null;
+      }
+    }
 
-			var nSamples = spec[0]
-			var spec_val = spec[1]
+    let actualSamples = specs.reduce((total, spec) => {
+      return total + spec[0];
+    }, 0);
+    //console.log(`actualSamples=${actualSamples}`)
 
-			var val_calculator = (() => {
-				if(spec_val == 's') {
-					// silence
-					return () => { return 0 }
-				} else if(typeof spec_val == 'number') {
-					var freq = spec_val
-					let t = (Math.PI * 2 * freq) / this.sampleRate
+    for (var i = 0; i < specs.length; i++) {
+      var spec = specs[i];
+      //console.log(`spec=${spec}`)
 
-					return (amplitude, currentSample) => {
-						return Math.round(amplitude * Math.sin(t * currentSample)) // sine wave
-					}
-				} else if(typeof spec_val == 'string' && spec_val.startsWith("DTMF:")) {
-					var tone = DTMF[spec_val.split(":")[1]]
-					var lo = tone[0]
-					var hi = tone[1]
+      var nSamples = spec[0];
+      var spec_val = spec[1];
 
-					let t_lo = (Math.PI * 2 * lo) / this.sampleRate
-					let t_hi = (Math.PI * 2 * hi) / this.sampleRate
+      var val_calculator = (() => {
+        if (spec_val == "s") {
+          // silence
+          return () => {
+            return 0;
+          };
+        } else if (typeof spec_val == "number") {
+          var freq = spec_val;
+          let t = (Math.PI * 2 * freq) / this.sampleRate;
 
-					return (amplitude, currentSample) => {
-						return (
-							Math.round(amplitude * Math.sin(t_lo * currentSample)) +
-							Math.round(amplitude * Math.sin(t_hi * currentSample))
-						) / 2
-					}
-				} else {
-					throw `invalid spec ${spec}`
-				}
-			})()
+          return (amplitude, currentSample) => {
+            return Math.round(amplitude * Math.sin(t * currentSample)); // sine wave
+          };
+        } else if (
+          typeof spec_val == "string" &&
+          spec_val.startsWith("DTMF:")
+        ) {
+          var tone = DTMF[spec_val.split(":")[1]];
+          var lo = tone[0];
+          var hi = tone[1];
 
-			for(var j=0 ; j<nSamples ; j++) {
-				for (let channel = 0; channel < this.channels; channel++) {
-					let val = val_calculator(this.amplitude, this.currentSample) / 2 // halve amplitude
-					let offset = (buf_idx * sampleSize * this.channels) + (channel * sampleSize)
-					setter(val, offset)
-					buf_idx++
-					this.currentSample++
-				}
-			}
-		}
+          let t_lo = (Math.PI * 2 * lo) / this.sampleRate;
+          let t_hi = (Math.PI * 2 * hi) / this.sampleRate;
 
-		if(typeof this.filler == 'number') {
-			while(numSamples > actualSamples) {
-				//console.log("adding filler")
-				for (let channel = 0; channel < this.channels; channel++) {
-					let offset = (actualSamples-1) * sampleSize * this.channels
-					setter(this.filler, offset)
-					this.currentSample++
-					actualSamples++
-				}
-			}
-		}
+          return (amplitude, currentSample) => {
+            return (
+              (Math.round(amplitude * Math.sin(t_lo * currentSample)) +
+                Math.round(amplitude * Math.sin(t_hi * currentSample))) /
+              2
+            );
+          };
+        } else {
+          throw `invalid spec ${spec}`;
+        }
+      })();
 
-		if(numSamples > actualSamples) {
-			//console.log(`slicing buf from ${numSamples} to ${actualSamples}`)
-			//console.log(`${actualSamples * sampleSize * this.channels}`)
-			buf = buf.slice(0, actualSamples * sampleSize * this.channels)
-		}
+      for (var j = 0; j < nSamples; j++) {
+        for (let channel = 0; channel < this.channels; channel++) {
+          let val = val_calculator(this.amplitude, this.currentSample) / 2; // halve amplitude
+          let offset =
+            buf_idx * sampleSize * this.channels + channel * sampleSize;
+          setter(val, offset);
+          buf_idx++;
+          this.currentSample++;
+        }
+      }
+    }
 
-		//console.log("pushing")
-		//console.log(buf.length)
-		this.push(buf)
-	}
+    if (typeof this.filler == "number") {
+      while (numSamples > actualSamples) {
+        //console.log("adding filler")
+        for (let channel = 0; channel < this.channels; channel++) {
+          let offset = (actualSamples - 1) * sampleSize * this.channels;
+          setter(this.filler, offset);
+          this.currentSample++;
+          actualSamples++;
+        }
+      }
+    }
+
+    if (numSamples > actualSamples) {
+      //console.log(`slicing buf from ${numSamples} to ${actualSamples}`)
+      //console.log(`${actualSamples * sampleSize * this.channels}`)
+      buf = buf.slice(0, actualSamples * sampleSize * this.channels);
+    }
+
+    //console.log("pushing")
+    //console.log(buf.length)
+    this.push(buf);
+  }
 }
 
 module.exports = {
-    ToneStream,
-    utils: require('./lib/utils.js'),
-}
+  ToneStream,
+  utils: require("./lib/utils.js"),
+};

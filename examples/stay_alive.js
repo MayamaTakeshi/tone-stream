@@ -10,9 +10,11 @@ const format = {
 	channels: 1
 }
 
-const filler = 0 // silence
+const opts = {
+  stay_alive: true,
+}
 
-const ts = new ToneStream(format, filler)
+const ts = new ToneStream(format, opts)
 
 const s = new Speaker(format)
 
@@ -44,7 +46,7 @@ assert(b.length == 140)
 s.write(b)
 
 b = ts.read(12000)
-assert(b.length == 12000) // this will be filled with zeros after all items are consumed.
+assert(b.length == 12000) // this will be filled with silence (zero) after all items are consumed.
 s.write(b)
 
 setTimeout(() => {}, 2000)
