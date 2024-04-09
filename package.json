@@ -1,6 +1,6 @@
 {
   "name": "tone-stream",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "A simple audio tone stream library",
   "main": "index.js",
   "repository": {
@@ -30,5 +30,12 @@
     "morse-node": "^0.1.1",
     "note-to-frequency": "^1.4.1",
     "spec-read-stream": "^1.2.8"
-  }
+  },
+  "files": [
+    "index.js",
+    "src",
+    "lib",
+    "README.md",
+    "LICENSE"
+  ]
 }
