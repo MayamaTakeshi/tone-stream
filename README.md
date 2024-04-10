@@ -1,5 +1,7 @@
 # tone-stream
 
+## Overview
+
 A simple node.js tone stream library.
 
 You can specify frequencies to be played by adding items in the format:
@@ -11,6 +13,12 @@ or DTMF tones:
   [NUMBER_OF_SAMPLES, 'DTMF:ID']
 ```
 
+## Installation
+```
+npm i tone-stream
+```
+
+## Sample usage
 
 Playing some musical notes:
 
@@ -109,3 +117,7 @@ console.log("Starting playing tones")
 ts.pipe(s)
 
 ```
+
+## More examples
+
+See [here](https://github.com/MayamaTakeshi/tone-stream/tree/master/examples).

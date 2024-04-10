@@ -1,6 +1,6 @@
 {
   "name": "tone-stream",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "A simple audio tone stream library",
   "main": "index.js",
   "repository": {
@@ -23,10 +23,10 @@
   "devDependencies": {
     "lodash": "^4.17.21",
     "speaker": "^0.5.1",
-    "wav": "^1.0.2"
+    "wav": "^1.0.2",
+    "dtmf-detection-stream": "^1.10.0"
   },
   "dependencies": {
-    "dtmf-detection-stream": "^1.10.0",
     "morse-node": "^0.1.1",
     "note-to-frequency": "^1.4.1",
     "spec-read-stream": "^1.2.8"
