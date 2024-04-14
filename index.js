@@ -7,7 +7,7 @@ const DTMF = require("./lib/dtmf");
 const EventEmitter = require('events');
 
 class ToneStream extends Readable {
-  constructor(format, opts) {
+  constructor(format) {
     super();
 
     if (format) {
@@ -20,8 +20,6 @@ class ToneStream extends Readable {
       this.bitDepth = 16;
       this.channels = 1;
     }
-
-    this.opts = opts;
 
     this.amplitude = 2 ** this.bitDepth / 2 - 1;
 
@@ -37,13 +35,18 @@ class ToneStream extends Readable {
   add(spec) {
     this.specReadStream.add(spec);
     this.pending_ended = true
+    var num_samples = spec[0]
+    return num_samples
   }
 
   concat(specs) {
+    var num_samples = 0
     specs.forEach((spec) => {
       this.specReadStream.add(spec);
+      num_samples += spec[0]
     });
     this.pending_ended = true
+    return num_samples
   }
 
   on(evt, cb) {
@@ -80,17 +83,14 @@ class ToneStream extends Readable {
         this.pending_ended = false
         this.eventEmitter.emit("ended")
       }
-      if (this.opts && this.opts.stay_alive) {
-        for (var j = 0; j < numSamples * this.channels; j++) {
-          let offset = j * sampleSize * this.channels;
-          setter(0, offset);
-        }
 
-        this.push(buf);
-        return;
-      } else {
-        return null;
+      for (var j = 0; j < numSamples * this.channels; j++) {
+        let offset = j * sampleSize * this.channels;
+        setter(0, offset);
       }
+
+      this.push(buf);
+      return;
     }
 
     let actualSamples = specs.reduce((total, spec) => {

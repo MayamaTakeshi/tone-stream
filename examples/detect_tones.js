@@ -2,20 +2,26 @@ const { ToneStream } = require('../index.js')
 const DtmfDetectionStream = require('dtmf-detection-stream')
 const Speaker = require('speaker')
 
+sampleRate = 8000
+
 const format = {
-  sampleRate: 8000,
+  sampleRate,
   bitDepth: 16,
   channels: 1,
 }
 
+var num_samples = 0
+
 const ts = new ToneStream(format)
-ts.add([800, 's']) // silence
-ts.add([800, 'DTMF:1'])
-ts.add([800, 's']) // silence
-ts.add([800, 'DTMF:2'])
-ts.add([800, 's']) // silence
-ts.add([800, 'DTMF:3'])
-ts.add([800, 's']) // silence
+num_samples += ts.add([800, 's']) // silence
+num_samples += ts.add([800, 'DTMF:1'])
+num_samples += ts.add([800, 's']) // silence
+num_samples += ts.add([800, 'DTMF:2'])
+num_samples += ts.add([800, 's']) // silence
+num_samples += ts.add([800, 'DTMF:3'])
+num_samples += ts.add([800, 's']) // silence
+
+var duration = num_samples / sampleRate * 1000
 
 const dds = new DtmfDetectionStream(format)
 
@@ -26,10 +32,10 @@ dds.on('dtmf', data => {
 ts.on('data', data => {
   //console.log('data', data)
   dds.write(data)
-  s.write(data) 
 })
 
 const s = new Speaker(format)
+ts.pipe(s)
 
 ts.on('empty', () => {
   console.log(new Date(), 'empty')
@@ -41,4 +47,5 @@ ts.on('ended', () => {
 
 setTimeout(() => {
   console.log("done")
-}, 1000)
+  process.exit(0)
+}, duration)

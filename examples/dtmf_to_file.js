@@ -44,12 +44,15 @@ const speaker = new Speaker(format)
 ts.pipe(speaker)
 ts.pipe(fileWriter)
 
-ts.concat(tones)
-ts.add([ sampleRate, 's' ])
+var num_samples = ts.concat(tones)
+num_samples += ts.add([ sampleRate, 's' ])
 
-ts.on('empty', () => {
-	console.log('end_of_audio')
-	setTimeout(() => {
-		fileWriter.end()
-	}, 1000)
-})
+var duration = num_samples / sampleRate * 1000
+
+console.log("num_samples", num_samples)
+
+setTimeout(() => {
+  console.log("done")
+  fileWriter.end()
+  process.exit(0)
+}, duration)
