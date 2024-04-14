@@ -31,6 +31,14 @@ ts.on('data', data => {
 
 const s = new Speaker(format)
 
+ts.on('empty', () => {
+  console.log(new Date(), 'empty')
+})
+
+ts.on('ended', () => {
+  console.log(new Date(), 'ended')
+})
+
 setTimeout(() => {
   console.log("done")
 }, 1000)

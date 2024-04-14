@@ -4,6 +4,8 @@ const SpecReadStream = require("spec-read-stream");
 
 const DTMF = require("./lib/dtmf");
 
+const EventEmitter = require('events');
+
 class ToneStream extends Readable {
   constructor(format, opts) {
     super();
@@ -26,16 +28,22 @@ class ToneStream extends Readable {
     this.specReadStream = new SpecReadStream();
 
     this.currentSample = 0;
+
+    this.pending_ended = false;
+
+    this.eventEmitter = new EventEmitter();
   }
 
   add(spec) {
     this.specReadStream.add(spec);
+    this.pending_ended = true
   }
 
   concat(specs) {
     specs.forEach((spec) => {
       this.specReadStream.add(spec);
     });
+    this.pending_ended = true
   }
 
   on(evt, cb) {
@@ -43,6 +51,8 @@ class ToneStream extends Readable {
 
     if (evt == "empty") {
       this.specReadStream.on(evt, cb);
+    } else if (evt == "ended") {
+      this.eventEmitter.on(evt, cb);
     }
   }
 
@@ -66,6 +76,10 @@ class ToneStream extends Readable {
     var buf_idx = 0;
 
     if (!specs) {
+      if(this.pending_ended) {
+        this.pending_ended = false
+        this.eventEmitter.emit("ended")
+      }
       if (this.opts && this.opts.stay_alive) {
         for (var j = 0; j < numSamples * this.channels; j++) {
           let offset = j * sampleSize * this.channels;

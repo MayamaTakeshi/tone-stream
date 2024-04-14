@@ -12,6 +12,7 @@ or DTMF tones:
 ```
   [NUMBER_OF_SAMPLES, 'DTMF:ID']
 ```
+You can add multiple of such tones and they will be enequeued and played in order.
 
 ## Installation
 ```
@@ -117,6 +118,11 @@ console.log("Starting playing tones")
 ts.pipe(s)
 
 ```
+## Events
+
+The stream emits:
+  - 'empty': when there are no more tones to be played in the queue (it happens when the queue of tones is found empty)
+  - 'ended': when all tones in the queue were generated (it happens when the consumer tries to read data from the stream and there are no more tones to be generated)
 
 ## More examples
 
