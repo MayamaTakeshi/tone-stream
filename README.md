@@ -28,23 +28,32 @@ const { ToneStream } = require('tone-stream')
 
 const Speaker = require('speaker')
 
+const sampleRate = 8000
+
 const format = {
-	sampleRate: 8000, 
-	bitDepth: 16,
-	channels: 1
+  sampleRate,
+  bitDepth: 16,
+  channels: 1
 }
 
 const ts = new ToneStream(format)
 
 const s = new Speaker(format)
 
-ts.add([1000, 261.63]) // C4
-ts.add([1000, 296.33]) // D4
-ts.add([1000, 329.63]) // E4
+var ns = 0
+ns += ts.add([1000, 261.63]) // C4
+ns += ts.add([1000, 296.33]) // D4
+ns += ts.add([1000, 329.63]) // E4
+
+var duration = ns / sampleRate * 1000
 
 ts.pipe(s)
 
-setTimeout(() => {}, 2000)
+setTimeout(() => {
+  console.log("done")
+  process.exit(0)
+}, duration)
+
 ```
 
 Playing some DTMF tones:
@@ -54,25 +63,36 @@ const { ToneStream } = require('tone-stream')
 
 const Speaker = require('speaker')
 
+const sampleRate = 8000
+
 const format = {
-	sampleRate: 8000, 
-	bitDepth: 16,
-	channels: 1
+  sampleRate,
+  bitDepth: 16,
+  channels: 1
 }
 
 const ts = new ToneStream(format)
 
 const s = new Speaker(format)
 
-ts.add([1000, 'DTMF:1'])
-ts.add([500, 's'])
-ts.add([1000, 'DTMF:2'])
-ts.add([500, 's'])
-ts.add([1000, 'DTMF:3'])
+var ns = 0
+
+ns += ts.add([1000, 'DTMF:1'])
+ns += ts.add([500, 's'])
+ns += ts.add([1000, 'DTMF:2'])
+ns += ts.add([500, 's'])
+ns += ts.add([1000, 'DTMF:3'])
+ns += ts.add([500, 's'])
+
+var duration = ns / sampleRate * 1000
 
 ts.pipe(s)
 
-setTimeout(() => {}, 2000)
+setTimeout(() => {
+  console.log("done")
+  process.exit(0)
+}, duration)
+
 ```
 
 Using some helper function to add miscelaneous tones
@@ -120,7 +140,7 @@ ts.pipe(s)
 ```
 ## Events
 
-The stream emits:
+The stream emits events:
   - 'empty': when there are no more tones to be played in the queue (it happens when the queue of tones is found empty)
   - 'ended': when all tones in the queue were generated (it happens when the consumer tries to read data from the stream and there are no more tones to be generated)
 
