@@ -25,8 +25,3 @@ num_samples += ts.add([1000, 's'])    // silence
 var duration = num_samples / sampleRate * 1000
 
 ts.pipe(s)
-
-setTimeout(() => {
-  console.log("done")
-  process.exit(0)
-}, duration)

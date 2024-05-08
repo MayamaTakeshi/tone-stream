@@ -23,7 +23,11 @@ num_samples += ts.add([800, 's']) // silence
 
 var duration = num_samples / sampleRate * 1000
 
-const dds = new DtmfDetectionStream(format)
+const opts = {
+  format
+}
+
+const dds = new DtmfDetectionStream(opts)
 
 dds.on('dtmf', data => {
   console.log('Got', data)
@@ -37,15 +41,3 @@ ts.on('data', data => {
 const s = new Speaker(format)
 ts.pipe(s)
 
-ts.on('empty', () => {
-  console.log(new Date(), 'empty')
-})
-
-ts.on('ended', () => {
-  console.log(new Date(), 'ended')
-})
-
-setTimeout(() => {
-  console.log("done")
-  process.exit(0)
-}, duration)

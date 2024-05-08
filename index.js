@@ -75,12 +75,15 @@ class ToneStream extends Readable {
     var buf_idx = 0;
 
     if (!specs) {
+      /*
       for (var j = 0; j < numSamples * this.channels; j++) {
         let offset = j * sampleSize * this.channels;
         setter(0, offset);
       }
 
       this.push(buf);
+      */
+      this.push(null)
       return;
     }
 

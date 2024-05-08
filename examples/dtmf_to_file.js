@@ -1,6 +1,7 @@
 const { ToneStream, utils } = require('../index.js')
 const Speaker = require('speaker')
 const wav = require('wav')
+const au = require('@mayama/audio-utils')
 
 function usage() {
 	console.log(`
@@ -41,6 +42,12 @@ const ts = new ToneStream(format)
 
 const speaker = new Speaker(format)
 
+// We need to write some initial silence to the speaker to avoid scratchyness/gaps
+const size = 320 * 64 
+console.log("writing initial silence to speaker", size)
+data = au.gen_silence(format.audioFormat, format.signed, size)
+speaker.write(data)
+
 ts.pipe(speaker)
 ts.pipe(fileWriter)
 
@@ -50,9 +57,3 @@ num_samples += ts.add([ sampleRate, 's' ])
 var duration = num_samples / sampleRate * 1000
 
 console.log("num_samples", num_samples)
-
-setTimeout(() => {
-  console.log("done")
-  fileWriter.end()
-  process.exit(0)
-}, duration)
