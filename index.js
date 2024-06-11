@@ -174,4 +174,5 @@ class ToneStream extends Readable {
 module.exports = {
   ToneStream,
   utils: require("./lib/utils.js"),
+  ssml: require("./lib/ssml.js"),
 };

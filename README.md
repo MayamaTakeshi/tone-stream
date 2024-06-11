@@ -95,7 +95,7 @@ setTimeout(() => {
 
 ```
 
-Using some helper function to add miscelaneous tones
+Using some helper functions to add miscelaneous tones
 ```
 const { ToneStream, utils } = require('tone-stream')
 
@@ -119,6 +119,7 @@ const tones = _.flatten([
     utils.gen_dtmf_tones("1234567890abcdef", 100, 100, SAMPLE_RATE),
     utils.gen_morse_tones("Be yourself; everyone else is already taken", 880, 70, SAMPLE_RATE),
     utils.gen_music_scale("C5 D5 E5 F5 G5 A5 B5 C6", 100, 0, SAMPLE_RATE),
+    utils.gen_binary_tones_from_text("hello world", 5, 500, 2000, SAMPLE_RATE),
 ])
 
 console.log("Inspecting tones:")
